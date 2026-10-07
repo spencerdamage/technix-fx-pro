@@ -1,8 +1,9 @@
 window.technixFirebaseConfig = {
-  apiKey: "REPLACE_WITH_FIREBASE_WEB_API_KEY",
-  authDomain: "REPLACE_WITH_PROJECT_ID.firebaseapp.com",
-  projectId: "REPLACE_WITH_PROJECT_ID",
-  appId: "REPLACE_WITH_FIREBASE_WEB_APP_ID"
+  apiKey: "AIzaSyBE9wns9ix9QRvRoM5fdFkK72yPlu7Wa0g",
+  authDomain: "technix-pro-fx.firebaseapp.com",
+  projectId: "technix-pro-fx",
+  appId: "1:996611133323:web:058da9b376eaf40ed9a98e",
+  messagingSenderId: "996611133323"
 };
 
 window.technixFirebaseConfigured = Object.values(window.technixFirebaseConfig)
