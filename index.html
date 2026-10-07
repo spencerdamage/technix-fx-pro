@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090d13">
+  <meta name="description" content="Technix pro fx — a demo commodity trading dashboard and market experience.">
+  <title>Technix pro fx — Commodity markets, clearly.</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090d13;
+      --surface: #101720;
+      --surface-2: #151e29;
+      --line: #26313d;
+      --muted: #8d9aaa;
+      --text: #edf3f8;
+      --green: #49d6a0;
+      --red: #ff7182;
+      --gold: #e4bf78;
+      --blue: #8caeff;
+      --radius: 14px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+    body { margin: 0; background: var(--bg); color: var(--text); }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    .shell { width: min(1320px, calc(100% - 48px)); margin: 0 auto; }
+    .eyebrow { color: var(--green); font-size: 11px; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; }
+    .muted { color: var(--muted); }
+    .positive { color: var(--green); }
+    .negative { color: var(--red); }
+    .mono { font-variant-numeric: tabular-nums; font-family: "SFMono-Regular", Consolas, monospace; }
+    .button { min-height: 42px; padding: 0 17px; border: 1px solid transparent; border-radius: 8px; color: #08120f; background: var(--green); font-size: 13px; font-weight: 750; transition: transform .18s, filter .18s; }
+    .button:hover { transform: translateY(-1px); filter: brightness(1.08); }
+    .button.secondary { background: transparent; border-color: var(--line); color: var(--text); }
+    .button.small { min-height: 36px; padding: 0 13px; font-size: 12px; }
+
+    .topbar { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid rgba(137, 158, 180, .13); background: rgba(9, 13, 19, .91); backdrop-filter: blur(18px); }
+    .nav { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 26px; }
+    .brand { display: flex; align-items: center; gap: 10px; white-space: nowrap; font-size: 16px; font-weight: 800; letter-spacing: -.04em; }
+    .brand-mark { width: 31px; height: 31px; display: grid; place-items: center; position: relative; transform: rotate(30deg); border: 1px solid var(--green); border-radius: 8px; color: var(--green); font-size: 17px; }
+    .brand-mark span { transform: rotate(-30deg); }
+    .nav-links { display: flex; gap: 24px; color: #aeb9c6; font-size: 12px; }
+    .nav-links a:hover, .footer-links a:hover { color: var(--green); }
+    .nav-actions { display: flex; align-items: center; gap: 14px; white-space: nowrap; font-size: 12px; }
+    .currency-control { display: flex; padding: 3px; border: 1px solid var(--line); border-radius: 7px; }
+    .currency-control button { border: 0; border-radius: 5px; padding: 6px 8px; color: var(--muted); background: transparent; font-size: 11px; }
+    .currency-control button.active { color: var(--text); background: var(--surface-2); }
+    .text-button { padding: 0; border: 0; color: var(--text); background: none; font-size: 12px; }
+    .menu-toggle { display: none; border: 0; color: var(--text); background: none; font-size: 22px; }
+
+    .hero { padding: 74px 0 46px; overflow: hidden; position: relative; }
+    .hero:after { content: ""; width: 540px; height: 390px; position: absolute; z-index: -1; top: -120px; right: -100px; background: radial-gradient(ellipse, rgba(57, 177, 138, .14), transparent 66%); pointer-events: none; }
+    .hero-layout { display: grid; grid-template-columns: 1.05fr .95fr; align-items: center; gap: 50px; }
+    .hero h1 { max-width: 720px; margin: 17px 0 16px; font-size: clamp(40px, 5.3vw, 68px); line-height: 1.04; letter-spacing: -.065em; }
+    .hero h1 span { color: var(--green); }
+    .hero-copy { max-width: 590px; color: #a5b2c0; font-size: 15px; line-height: 1.8; }
+    .hero-actions { display: flex; gap: 12px; margin-top: 27px; }
+    .trust-line { display: flex; align-items: center; gap: 9px; margin-top: 27px; color: var(--muted); font-size: 11px; }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 12px var(--green); }
+    .hero-card { min-height: 300px; padding: 24px; border: 1px solid #293642; border-radius: 17px; background: linear-gradient(145deg, rgba(22, 33, 43, .96), rgba(12, 19, 26, .94)); box-shadow: 0 28px 80px rgba(0, 0, 0, .2); }
+    .hero-card-head { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 11px; }
+    .market-highlight { display: flex; align-items: center; gap: 12px; margin-top: 28px; }
+    .coin-icon { width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid rgba(228, 191, 120, .35); border-radius: 50%; color: var(--gold); background: rgba(228, 191, 120, .08); font-size: 20px; }
+    .market-highlight strong { font-size: 14px; }
+    .market-highlight small { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
+    .hero-price { display: flex; align-items: baseline; gap: 12px; margin: 17px 0 3px; }
+    .hero-price strong { font-size: 34px; letter-spacing: -.05em; }
+    .hero-price span { font-size: 12px; }
+    .sparkline { width: 100%; height: 95px; margin-top: 5px; overflow: visible; }
+    .hero-card-foot { display: flex; justify-content: space-between; padding-top: 13px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
+
+    .ticker { overflow: hidden; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #0d131a; }
+    .ticker-track { min-width: max-content; display: flex; animation: ticker 42s linear infinite; }
+    .ticker:hover .ticker-track { animation-play-state: paused; }
+    .ticker-item { display: flex; align-items: center; gap: 10px; padding: 14px 26px; border-right: 1px solid var(--line); font-size: 11px; }
+    .ticker-item strong { font-size: 11px; }
+    .ticker-item .ticker-price { color: #d5dfe8; }
+    @keyframes ticker { to { transform: translateX(-50%); } }
+
+    section.content-section { padding: 70px 0; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 24px; }
+    .section-heading h2 { margin: 8px 0 0; font-size: clamp(26px, 3vw, 36px); letter-spacing: -.045em; }
+    .section-heading p { max-width: 490px; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+    .desk { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 14px; }
+    .panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    .chart-panel { min-width: 0; overflow: hidden; }
+    .instrument-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 17px; border-bottom: 1px solid var(--line); }
+    .instrument-info { display: flex; align-items: center; gap: 11px; }
+    .instrument-info strong { font-size: 13px; }
+    .instrument-info small { margin-left: 8px; color: var(--muted); font-size: 10px; }
+    .instrument-price { text-align: right; }
+    .instrument-price strong { display: block; font-size: 14px; }
+    .instrument-price small { color: var(--green); font-size: 10px; }
+    .timeframes { display: flex; gap: 4px; }
+    .timeframes button, .switcher button { padding: 7px 9px; border: 0; border-radius: 6px; color: var(--muted); background: transparent; font-size: 10px; }
+    .timeframes button.active, .switcher button.active { color: var(--text); background: var(--surface-2); }
+    .chart-wrap { position: relative; padding: 12px 12px 5px; }
+    #price-chart { width: 100%; height: 278px; display: block; }
+    .chart-label { position: absolute; top: 17px; left: 18px; color: var(--muted); font-size: 10px; }
+    .switcher { display: flex; flex-wrap: wrap; gap: 5px; padding: 13px 16px 15px; border-top: 1px solid var(--line); }
+    .trading-side { display: flex; flex-direction: column; gap: 14px; }
+    .side-panel { padding: 16px; }
+    .panel-title { display: flex; justify-content: space-between; align-items: center; margin: 0 0 14px; font-size: 12px; font-weight: 700; }
+    .panel-title span { color: var(--muted); font-size: 10px; font-weight: 500; }
+    .depth-head, .depth-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; padding: 6px 0; font-size: 10px; }
+    .depth-head { color: var(--muted); }
+    .depth-row span:nth-child(2), .depth-row span:nth-child(3), .depth-head span:not(:first-child) { text-align: right; }
+    .depth-row.ask { color: var(--red); }
+    .depth-row.bid { color: var(--green); }
+    .spread { margin: 7px 0; padding: 8px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; color: #c8d2dc; font-size: 10px; }
+    .trade-row { display: flex; justify-content: space-between; padding: 6px 0; color: #b7c2ce; font-size: 10px; }
+    .order-panel { padding: 16px; }
+    .order-tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 3px; margin-bottom: 12px; border-radius: 7px; background: #0b1117; }
+    .order-tabs button { padding: 8px; border: 0; border-radius: 5px; color: var(--muted); background: transparent; font-size: 11px; }
+    .order-tabs button.active.buy { color: #06140f; background: var(--green); }
+    .order-tabs button.active.sell { color: white; background: #d45367; }
+    .field-label { display: block; margin: 12px 0 6px; color: var(--muted); font-size: 10px; }
+    .input-wrap { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 7px; background: #0b1117; }
+    .input-wrap input, .input-wrap select { width: 100%; min-width: 0; padding: 10px; border: 0; outline: 0; color: var(--text); background: transparent; font-size: 11px; }
+    .input-wrap span { padding: 0 10px; color: var(--muted); font-size: 10px; }
+    .balance-line, .preview-line { display: flex; justify-content: space-between; margin-top: 11px; color: var(--muted); font-size: 10px; }
+    .order-submit { width: 100%; margin-top: 14px; }
+    .demo-note { margin: 10px 0 0; color: #8190a0; font-size: 9px; line-height: 1.5; }
+
+    .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .money-card { padding: 22px; }
+    .money-card h3 { margin: 0; font-size: 17px; letter-spacing: -.02em; }
+    .money-card > p { margin: 8px 0 18px; color: var(--muted); font-size: 11px; line-height: 1.65; }
+    .money-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .money-form .field { min-width: 0; }
+    .money-form .full { grid-column: 1 / -1; }
+    .money-form label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 10px; }
+    .money-form input, .money-form select { width: 100%; height: 40px; padding: 0 10px; border: 1px solid var(--line); border-radius: 7px; outline: 0; color: var(--text); background: #0b1117; font-size: 11px; }
+    .fee-result { min-height: 47px; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 16px; padding: 11px 12px; border: 1px solid rgba(73, 214, 160, .18); border-radius: 8px; background: rgba(73, 214, 160, .05); font-size: 10px; }
+    .fee-result strong { color: var(--green); font-size: 12px; }
+    .demo-action { width: 100%; margin-top: 12px; }
+
+    .admin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+    .stat-card { padding: 17px; }
+    .stat-card span { color: var(--muted); font-size: 10px; }
+    .stat-card strong { display: block; margin-top: 9px; font-size: 23px; letter-spacing: -.04em; }
+    .stat-card small { display: block; margin-top: 7px; color: var(--green); font-size: 9px; }
+    .fee-vault { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+    .fee-vault .stat-card strong { font-size: 17px; }
+    .audit-panel { overflow: hidden; }
+    .audit-head { display: flex; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 700; }
+    .audit-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .audit-table th, .audit-table td { padding: 12px 16px; border-bottom: 1px solid rgba(38, 49, 61, .7); font-size: 10px; }
+    .audit-table th { color: var(--muted); font-weight: 500; }
+    .status { display: inline-block; padding: 5px 8px; border-radius: 20px; color: var(--green); background: rgba(73, 214, 160, .1); font-size: 9px; }
+    .status.pending { color: var(--gold); background: rgba(228, 191, 120, .1); }
+    .owner-note { padding: 11px 16px; color: var(--muted); font-size: 9px; }
+
+    .trust-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; margin-bottom: 42px; }
+    .trust-card { padding: 19px; }
+    .trust-icon { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid rgba(73, 214, 160, .25); border-radius: 9px; color: var(--green); background: rgba(73, 214, 160, .07); }
+    .trust-card h3 { margin: 13px 0 7px; font-size: 13px; }
+    .trust-card p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.7; }
+    .faq { max-width: 830px; }
+    .faq details { border-bottom: 1px solid var(--line); }
+    .faq summary { padding: 16px 0; cursor: pointer; font-size: 12px; font-weight: 650; list-style: none; }
+    .faq summary:after { content: "+"; float: right; color: var(--green); font-size: 17px; line-height: 12px; }
+    .faq details[open] summary:after { content: "−"; }
+    .faq details p { max-width: 710px; margin: 0; padding: 0 0 16px; color: var(--muted); font-size: 11px; line-height: 1.8; }
+
+    footer { border-top: 1px solid var(--line); background: #0b1016; }
+    .footer-main { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 30px; padding: 37px 0; }
+    .footer-brand p { max-width: 260px; color: var(--muted); font-size: 10px; line-height: 1.7; }
+    .footer-links h4 { margin: 0 0 13px; font-size: 11px; }
+    .footer-links a { display: block; margin: 9px 0; color: var(--muted); font-size: 10px; }
+    .risk { padding: 15px 0 19px; border-top: 1px solid var(--line); color: #778493; font-size: 9px; line-height: 1.7; }
+    .risk strong { color: #adb9c5; }
+    .copyright { display: flex; justify-content: space-between; gap: 15px; padding-top: 12px; color: #657280; }
+    .toast { position: fixed; right: 22px; bottom: 22px; z-index: 30; max-width: 340px; padding: 14px 18px; border: 1px solid #344653; border-radius: 9px; color: var(--text); background: #17232c; box-shadow: 0 12px 45px rgba(0, 0, 0, .4); font-size: 12px; opacity: 0; transform: translateY(12px); pointer-events: none; transition: .2s; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 980px) {
+      .nav-links { gap: 13px; }
+      .nav-actions { gap: 10px; }
+      .desk { grid-template-columns: minmax(0, 1fr) 270px; }
+    }
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 32px, 600px); }
+      .nav { min-height: 64px; }
+      .menu-toggle { display: block; }
+      .nav-links { display: none; position: absolute; top: 63px; left: 0; right: 0; flex-direction: column; gap: 0; padding: 7px 22px 16px; border-bottom: 1px solid var(--line); background: #0b1016; }
+      .nav-links.open { display: flex; }
+      .nav-links a { padding: 12px 0; }
+      .nav-actions { gap: 11px; }
+      .nav-actions .text-button { display: none; }
+      .nav-actions #auth-button { display: block; }
+      .hero { padding: 54px 0 34px; }
+      .hero-layout { grid-template-columns: 1fr; gap: 28px; }
+      .hero h1 { font-size: clamp(39px, 10vw, 57px); }
+      .hero-card { min-height: 275px; }
+      section.content-section { padding: 54px 0; }
+      .section-heading { align-items: start; flex-direction: column; }
+      .desk { grid-template-columns: 1fr; }
+      .trading-side { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
+      .order-panel { grid-column: 1 / -1; }
+      .admin-grid { grid-template-columns: 1fr 1fr; }
+      .footer-main { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 520px) {
+      .shell { width: calc(100% - 28px); }
+      .brand { font-size: 14px; }
+      .brand-mark { width: 28px; height: 28px; }
+      .nav { gap: 8px; }
+      .currency-control button { padding: 6px; }
+      .nav-actions { gap: 8px; }
+      .nav-actions .button { min-height: 34px; padding: 0 10px; font-size: 10px; }
+      .hero-copy { font-size: 13px; }
+      .hero-actions { flex-wrap: wrap; }
+      .instrument-bar { flex-wrap: wrap; }
+      .instrument-price { margin-left: auto; }
+      .timeframes { width: 100%; }
+      .timeframes button { flex: 1; }
+      #price-chart { height: 225px; }
+      .trading-side { grid-template-columns: 1fr; }
+      .order-panel { grid-column: auto; }
+      .two-column { grid-template-columns: 1fr; }
+      .money-card { padding: 17px; }
+      .audit-table th, .audit-table td { padding: 10px 8px; font-size: 9px; }
+      .audit-table th:first-child, .audit-table td:first-child { padding-left: 12px; }
+      .trust-grid { grid-template-columns: 1fr; }
+      .footer-main { gap: 18px; }
+      .copyright { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *:before, *:after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell nav">
+      <a class="brand" href="#home" aria-label="Technix pro fx home">
+        <span class="brand-mark"><span>✣</span></span><span>Technix <span style="color:var(--green)">pro fx</span></span>
+      </a>
+      <button class="menu-toggle" id="menu-toggle" aria-label="Open navigation" aria-expanded="false">☰</button>
+      <nav class="nav-links" id="nav-links" aria-label="Main navigation">
+        <a href="#markets">Markets</a><a href="#trade">Trade</a><a href="#funding">Deposits &amp; Withdrawals</a><a href="#analytics">Analytics</a><a href="#admin">Admin Portal</a>
+      </nav>
+      <div class="nav-actions">
+        <div class="currency-control" aria-label="Display currency">
+          <button class="active" data-currency="USD">USD</button><button data-currency="KSH">KSH</button>
+        </div>
+        <button class="text-button" id="auth-button">Sign in</button>
+        <button class="button small" id="signout-button" hidden>Sign out</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="shell hero-layout">
+        <div>
+          <div class="eyebrow">A clearer view of commodities</div>
+          <h1>Real-time commodity tracking &amp; <span>high-speed trading.</span></h1>
+          <p class="hero-copy">Explore world commodity markets with USD and KSH display options. Transparent fee previews, a responsive trading desk, and a faster way to follow the markets.</p>
+          <div class="hero-actions">
+            <a class="button" href="#trade">Start Trading Now</a>
+            <a class="button secondary" href="#markets">Explore Markets</a>
+          </div>
+          <div class="trust-line"><span class="live-dot"></span>Interactive demo · Market data is simulated</div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-card-head"><span>MARKET SPOTLIGHT</span><span class="positive">● DEMO FEED</span></div>
+          <div class="market-highlight"><span class="coin-icon">Au</span><div><strong>Gold / US Dollar</strong><small>XAU · Precious metals</small></div></div>
+          <div class="hero-price"><strong id="hero-price" class="mono">$2,348.62</strong><span class="positive">+1.28%</span></div>
+          <svg class="sparkline" viewBox="0 0 520 100" preserveAspectRatio="none" aria-label="Illustrative gold price chart">
+            <defs><linearGradient id="fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#49d6a0" stop-opacity=".24"/><stop offset="1" stop-color="#49d6a0" stop-opacity="0"/></linearGradient></defs>
+            <path d="M0 76 C25 71 34 77 54 62 S85 70 103 56 S130 64 153 44 S183 49 202 41 S223 50 245 32 S274 47 296 36 S324 43 344 24 S376 35 398 26 S424 33 446 16 S472 26 493 12 S508 18 520 7 L520 100 L0 100Z" fill="url(#fill)"/>
+            <path d="M0 76 C25 71 34 77 54 62 S85 70 103 56 S130 64 153 44 S183 49 202 41 S223 50 245 32 S274 47 296 36 S324 43 344 24 S376 35 398 26 S424 33 446 16 S472 26 493 12 S508 18 520 7" fill="none" stroke="#49d6a0" stroke-width="2"/>
+          </svg>
+          <div class="hero-card-foot"><span>24H HIGH <b class="mono">$2,372.10</b></span><span>24H LOW <b class="mono">$2,308.45</b></span><span>VOL <b>18.42K</b></span></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="ticker" id="markets" aria-label="Illustrative commodity price ticker">
+      <div class="ticker-track" id="ticker-track"></div>
+    </div>
+
+    <section class="content-section" id="trade">
+      <div class="shell">
+        <div class="section-heading">
+          <div><div class="eyebrow">The trading desk</div><h2>Markets in motion.</h2></div>
+          <p>Switch markets, explore illustrative candlesticks, and preview a simulated order. No brokerage connection or real-money execution is enabled.</p>
+        </div>
+        <div class="desk">
+          <div class="panel chart-panel">
+            <div class="instrument-bar">
+              <div class="instrument-info"><span class="coin-icon" id="instrument-icon">Au</span><div><strong id="instrument-name">Gold / US Dollar</strong><small id="instrument-symbol">XAU / USD</small></div></div>
+              <div class="instrument-price"><strong id="desk-price" class="mono">$2,348.62</strong><small id="desk-change">+1.28%</small></div>
+              <div class="timeframes" aria-label="Chart timeframes"><button data-timeframe="1m">1m</button><button data-timeframe="15m" class="active">15m</button><button data-timeframe="1h">1h</button><button data-timeframe="1D">1D</button></div>
+            </div>
+            <div class="chart-wrap"><span class="chart-label">Illustrative price · <span id="chart-timeframe">15m</span></span><canvas id="price-chart" aria-label="Simulated commodity candlestick chart"></canvas></div>
+            <div class="switcher" aria-label="Commodity market switcher">
+              <button class="active" data-market="XAU">Gold</button><button data-market="BRENT">Brent Oil</button><button data-market="WTI">Crude Oil</button><button data-market="COFFEE">Coffee</button><button data-market="COCOA">Cocoa</button><button data-market="WHEAT">Wheat</button><button data-market="CORN">Corn</button><button data-market="GAS">Natural Gas</button>
+            </div>
+          </div>
+          <aside class="trading-side">
+            <div class="panel side-panel">
+              <h3 class="panel-title">Order book <span>DEMO</span></h3>
+              <div class="depth-head"><span>Price (<span class="currency-label">USD</span>)</span><span>Size</span><span>Total</span></div>
+              <div id="asks"></div>
+              <div class="spread"><span>Spread</span><strong id="spread-value" class="mono">0.08</strong></div>
+              <div id="bids"></div>
+            </div>
+            <div class="panel side-panel">
+              <h3 class="panel-title">Recent trades <span>DEMO FLOW</span></h3>
+              <div id="recent-trades"></div>
+            </div>
+            <div class="panel order-panel">
+              <h3 class="panel-title">Place an order <span>SIMULATED</span></h3>
+              <div class="order-tabs"><button class="active buy" data-side="buy">Buy</button><button data-side="sell">Sell</button></div>
+              <label class="field-label" for="order-type">Order type</label>
+              <div class="input-wrap"><select id="order-type"><option>Market</option><option>Limit</option></select></div>
+              <div id="limit-price-field" hidden>
+                <label class="field-label" for="limit-price">Limit price (<span class="currency-label">USD</span>)</label>
+                <div class="input-wrap"><input id="limit-price" type="number" min="0" step="0.01" inputmode="decimal"></div>
+              </div>
+              <label class="field-label" for="order-quantity">Quantity</label>
+              <div class="input-wrap"><input id="order-quantity" type="number" min="0" step="0.01" value="1"><span id="quantity-unit">XAU</span></div>
+              <div class="balance-line"><span>Available demo balance</span><strong class="mono" id="available-balance">$10,000.00</strong></div>
+              <div class="balance-line"><span>Demo position</span><strong class="mono" id="position-quantity">0.00 XAU</strong></div>
+              <div class="preview-line"><span>Estimated total</span><strong class="mono" id="order-total">$2,348.62</strong></div>
+              <button class="button order-submit" id="submit-order">Buy XAU</button>
+              <p class="demo-note">Demo only. Orders are not routed to a broker and have no cash value.</p>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section" id="funding">
+      <div class="shell">
+        <div class="section-heading">
+          <div><div class="eyebrow">Funding hub</div><h2>Know the numbers up front.</h2></div>
+          <p>Explore example fee calculations for USD and KSH. Payment methods shown are illustrative only; deposits and withdrawals are not processed.</p>
+        </div>
+        <div class="two-column">
+          <article class="panel money-card">
+            <div class="eyebrow">01 · Add funds</div><h3 style="margin-top:8px">Instant deposit desk</h3>
+            <p>Preview the amount after an example tiered platform fee. Choose an illustrative card or mobile money method.</p>
+            <div class="money-form">
+              <div class="field"><label for="deposit-amount">Deposit amount</label><input id="deposit-amount" type="number" min="1" value="100"></div>
+              <div class="field"><label for="deposit-currency">Currency</label><select id="deposit-currency"><option>KSH</option><option>USD</option></select></div>
+              <div class="field full"><label for="deposit-method">Payment method</label><select id="deposit-method"><option>M-Pesa · STK Push</option><option>Card · demo only</option></select></div>
+            </div>
+            <div class="fee-result"><span>Illustrative fee only <b id="deposit-fee-label">5.0%</b> · Example net</span><strong class="mono" id="deposit-receive">$95.00</strong></div>
+            <div class="preview-line"><span>Amount requested by M-Pesa</span><strong class="mono" id="stk-prompt-amount">KSH 100.00</strong></div>
+            <button class="button secondary demo-action" id="deposit-button">Request M-Pesa prompt</button>
+            <p class="demo-note">M-Pesa requests require verified phone sign-in and backend setup. Payments are disabled until a production ledger is implemented and audited. This scaffold never credits a balance.</p>
+          </article>
+          <article class="panel money-card">
+            <div class="eyebrow">02 · Withdraw funds</div><h3 style="margin-top:8px">Verified withdrawal desk</h3>
+            <p>Estimate the payout after an example processing fee. Secure bank and mobile wallet payouts are not connected.</p>
+            <div class="money-form">
+              <div class="field"><label for="withdraw-amount">Withdrawal amount</label><input id="withdraw-amount" type="number" min="1" value="250"></div>
+              <div class="field"><label for="withdraw-currency">Currency</label><select id="withdraw-currency"><option>USD</option><option>KSH</option></select></div>
+              <div class="field full"><label for="withdraw-method">Payout method</label><select id="withdraw-method"><option>Bank account · demo</option><option>Mobile wallet · demo</option></select></div>
+            </div>
+            <div class="fee-result"><span>Example fee <b id="withdraw-fee-label">2.0%</b> · Estimated payout</span><strong class="mono" id="withdraw-receive">$245.00</strong></div>
+            <p class="demo-note">Example arrival estimate: 1–2 business days. Timing depends on the payout provider.</p>
+            <button class="button secondary demo-action" data-toast="Withdrawals are disabled. No payout request has been created.">Preview withdrawal (demo)</button>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section" id="analytics">
+      <div class="shell">
+        <div class="section-heading">
+          <div><div class="eyebrow">Platform analytics</div><h2>One view of the activity.</h2></div>
+          <p>Example dashboard metrics for demonstration only. They are not connected to customer accounts or actual transactions.</p>
+        </div>
+        <div class="admin-grid">
+          <div class="panel stat-card"><span>Total deposit volume</span><strong class="mono">$248.6K</strong><small>↗ 8.4% this month</small></div>
+          <div class="panel stat-card"><span>Active traders</span><strong class="mono">1,284</strong><small>↗ 12.1% this month</small></div>
+          <div class="panel stat-card"><span>24h platform turnover</span><strong class="mono">$86.2K</strong><small>↗ 3.7% in 24h</small></div>
+          <div class="panel stat-card"><span>Example fee revenue</span><strong class="mono">$2,418</strong><small>Illustrative only</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section" id="admin">
+      <div class="shell">
+        <div class="section-heading">
+          <div><div class="eyebrow">Owner-only in production · preview</div><h2>Operations at a glance.</h2></div>
+          <p>Owner analytics and audit log mockup. This static preview has no authentication or access control and must not be used for real administration.</p>
+        </div>
+        <div class="fee-vault">
+          <div class="panel stat-card"><span>Accrued trading fees · sample</span><strong class="mono">$1,806</strong><small>Included in demo fee revenue</small></div>
+          <div class="panel stat-card"><span>Accrued funding fees · sample</span><strong class="mono">$612</strong><small>Included in demo fee revenue</small></div>
+          <div class="panel stat-card"><span>Total fee vault · sample</span><strong class="mono">$2,418</strong><small>Illustrative, not actual revenue</small></div>
+        </div>
+        <div class="panel audit-panel">
+          <div class="audit-head"><span>Recent deposit &amp; withdrawal requests</span><span class="muted" style="font-size:10px">Sample records</span></div>
+          <div style="overflow-x:auto">
+            <table class="audit-table">
+              <thead><tr><th>Reference</th><th>Type</th><th>Method</th><th>Amount</th><th>Time</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">TX-84021</td><td>Deposit</td><td>Card · USD</td><td class="mono">$500.00</td><td>Today, 10:42</td><td><span class="status">Completed</span></td></tr>
+                <tr><td class="mono">TX-84020</td><td>Withdrawal</td><td>Mobile wallet · KSH</td><td class="mono">KSH 18,500</td><td>Today, 10:18</td><td><span class="status pending">Pending</span></td></tr>
+                <tr><td class="mono">TX-84019</td><td>Deposit</td><td>M-Pesa · KSH</td><td class="mono">KSH 12,000</td><td>Today, 09:56</td><td><span class="status">Completed</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="owner-note">Sample data only · No user information or real transaction records are displayed.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-section" id="security">
+      <div class="shell">
+        <div class="section-heading">
+          <div><div class="eyebrow">Security &amp; clarity</div><h2>Trust starts with transparency.</h2></div>
+        </div>
+        <div class="trust-grid">
+          <article class="panel trust-card"><div class="trust-icon">◇</div><h3>Security-first design</h3><p>Strong encryption, secure session handling, and independently reviewed infrastructure are essential before any real customer data is accepted.</p></article>
+          <article class="panel trust-card"><div class="trust-icon">▣</div><h3>Custody safeguards</h3><p>Cold-storage protection is a platform requirement to verify with a real, audited custody provider—not a feature of this demo.</p></article>
+          <article class="panel trust-card"><div class="trust-icon">✓</div><h3>Verification &amp; compliance</h3><p>KYC, AML, licensing, and local regulatory requirements must be implemented and verified before a production launch.</p></article>
+        </div>
+        <div class="faq">
+          <div class="eyebrow">Good to know</div><h2 style="margin:8px 0 14px;font-size:25px;letter-spacing:-.04em">Frequently asked questions</h2>
+          <details><summary>How are the example fee tiers calculated?</summary><p>The deposit preview uses a sample 5% fee and the withdrawal preview a sample 2% fee. These are illustrative values only and do not represent actual platform pricing.</p></details>
+          <details><summary>What currency conversion rate is used?</summary><p>The currency selector uses a static illustrative conversion rate of KSH 129.50 per USD. It is not a live or guaranteed FX quote.</p></details>
+          <details><summary>When do deposits and withdrawals settle?</summary><p>The M-Pesa STK backend scaffold is disabled by default and does not credit a trading balance. Withdrawal processing is not integrated. No payment should be enabled until ledger, reconciliation, and support controls are ready.</p></details>
+          <details><summary>Are the prices and trading activity live?</summary><p>No. Prices, candlesticks, order-book depth, and trade activity are generated for this interactive preview. They should not be used for investment decisions.</p></details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell footer-main">
+      <div class="footer-brand">
+        <a class="brand" href="#home"><span class="brand-mark"><span>✣</span></span><span>Technix <span style="color:var(--green)">pro fx</span></span></a>
+        <p>A commodity market interface concept. Market information and trading features on this page are simulated.</p>
+      </div>
+      <div class="footer-links"><h4>Explore</h4><a href="#markets">Markets</a><a href="#trade">Trading desk</a><a href="#funding">Funding preview</a></div>
+      <div class="footer-links"><h4>Information</h4><a href="#security">Security</a><a href="#security">AML policy</a><a href="#security">Terms of service</a></div>
+      <div class="footer-links"><h4>Community</h4><a href="#home" data-toast="Community links are not configured in this demo.">X / Twitter</a><a href="#home" data-toast="Community links are not configured in this demo.">Telegram</a><a href="#home" data-toast="Contact details are not configured in this demo.">Contact us</a></div>
+    </div>
+    <div class="shell risk">
+      <strong>Risk disclosure:</strong> Commodity trading involves substantial risk and may not be suitable for every investor. Prices can move rapidly and you may lose some or all of your capital. This page is a non-production prototype: all prices, balances, metrics, orders, fees, and transaction records are simulated. It does not provide financial advice, connect to a broker, process payments, or represent a licensed financial service.
+      <div class="copyright"><span>© 2026 Technix pro fx · Demo interface</span><span>AML policy · Terms of service · Privacy</span></div>
+    </div>
+  </footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <dialog class="auth-dialog" id="auth-dialog" aria-labelledby="auth-title">
+    <form method="dialog" class="auth-dialog-inner">
+      <button class="auth-close" id="auth-close" value="close" aria-label="Close sign-in dialog">×</button>
+      <div class="eyebrow">Secure account access</div>
+      <h2 id="auth-title">Verify your phone</h2>
+      <p>Firebase sends an SMS verification code. A verified Kenyan phone number is required before a payment request can be considered.</p>
+      <label for="auth-phone">Mobile number</label>
+      <input id="auth-phone" type="tel" autocomplete="tel" placeholder="+2547XXXXXXXX" required>
+      <div id="auth-code-field" hidden>
+        <label for="auth-code">SMS verification code</label>
+        <input id="auth-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+      </div>
+      <div id="recaptcha-container"></div>
+      <p id="auth-status" role="status"></p>
+      <button class="button" type="button" id="send-code">Send verification code</button>
+      <button class="button" type="button" id="verify-code" hidden>Verify &amp; sign in</button>
+    </form>
+  </dialog>
+  <style>
+    .auth-dialog { width: min(420px, calc(100% - 28px)); padding: 0; border: 1px solid var(--line); border-radius: 14px; color: var(--text); background: var(--surface); box-shadow: 0 24px 90px #0009; }
+    .auth-dialog::backdrop { background: #030609c9; backdrop-filter: blur(4px); }
+    .auth-dialog-inner { position: relative; display: grid; gap: 10px; padding: 25px; }
+    .auth-dialog-inner h2 { margin: 0; font-size: 23px; }
+    .auth-dialog-inner p { margin: 0 0 4px; color: var(--muted); font-size: 11px; line-height: 1.7; }
+    .auth-dialog-inner label { margin-top: 5px; color: var(--muted); font-size: 10px; }
+    .auth-dialog-inner input { width: 100%; height: 42px; padding: 0 11px; border: 1px solid var(--line); border-radius: 7px; outline: 0; color: var(--text); background: #0b1117; font-size: 12px; }
+    .auth-dialog-inner #auth-status { min-height: 16px; margin-top: 3px; }
+    .auth-close { position: absolute; top: 12px; right: 14px; border: 0; color: var(--muted); background: transparent; font-size: 24px; }
+    [hidden] { display: none !important; }
+  </style>
+
+  <script src="./firebase-client-config.js"></script>
+  <script>
+    (() => {
+      const fx = 129.5;
+      const markets = [
+        { id: "XAU", name: "Gold / US Dollar", symbol: "XAU", icon: "Au", base: 2348.62, change: 1.28, digits: 2 },
+        { id: "BRENT", name: "Brent Crude Oil", symbol: "BRENT", icon: "Br", base: 82.41, change: .84, digits: 2 },
+        { id: "WTI", name: "Crude Oil (WTI)", symbol: "WTI", icon: "WT", base: 78.16, change: -.36, digits: 2 },
+        { id: "COFFEE", name: "Arabica Coffee", symbol: "COFFEE", icon: "Cf", base: 2.18, change: 1.92, digits: 3 },
+        { id: "COCOA", name: "Cocoa", symbol: "COCOA", icon: "Cc", base: 8421, change: -1.14, digits: 2 },
+        { id: "WHEAT", name: "Wheat", symbol: "WHEAT", icon: "Wh", base: 582.25, change: .41, digits: 2 },
+        { id: "CORN", name: "Corn", symbol: "CORN", icon: "Cr", base: 437.5, change: -.22, digits: 2 },
+        { id: "GAS", name: "Natural Gas", symbol: "NG", icon: "Ng", base: 2.74, change: 2.35, digits: 3 }
+      ];
+      const state = {
+        currency: "USD", market: markets[0], side: "buy", timeframe: "15m", balance: 10000,
+        priceOffsets: Object.fromEntries(markets.map(m => [m.id, 0])),
+        positions: Object.fromEntries(markets.map(m => [m.id, 0]))
+      };
+      const $ = (selector) => document.querySelector(selector);
+      const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+      const format = (value, digits = 2) => {
+        const amount = state.currency === "KSH" ? value * fx : value;
+        const prefix = state.currency === "KSH" ? "KSH " : "$";
+        return prefix + amount.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+      };
+      const currentPrice = (market = state.market) => market.base + state.priceOffsets[market.id];
+      const orderPrice = () => {
+        if ($("#order-type").value !== "Limit") return currentPrice();
+        const entered = Number($("#limit-price").value);
+        return Number.isFinite(entered) && entered > 0 ? entered / (state.currency === "KSH" ? fx : 1) : NaN;
+      };
+      const setLimitPrice = () => {
+        const displayed = currentPrice() * (state.currency === "KSH" ? fx : 1);
+        $("#limit-price").value = displayed.toFixed(state.market.digits);
+        $("#limit-price").step = Math.pow(10, -state.market.digits).toString();
+      };
+      const showToast = (message) => {
+        const toast = $("#toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(showToast.timer);
+        showToast.timer = setTimeout(() => toast.classList.remove("show"), 3000);
+      };
+
+      function updateMarketLabels() {
+        const price = currentPrice();
+        $("#hero-price").textContent = format(currentPrice(markets[0]), 2);
+        $("#instrument-icon").textContent = state.market.icon;
+        $("#instrument-name").textContent = state.market.name;
+        $("#instrument-symbol").textContent = state.market.symbol + " / " + state.currency;
+        $("#desk-price").textContent = format(price, state.market.digits);
+        $("#desk-change").textContent = (state.market.change >= 0 ? "+" : "") + state.market.change.toFixed(2) + "%";
+        $("#desk-change").className = state.market.change >= 0 ? "positive" : "negative";
+        $("#spread-value").textContent = format(price * .00004, state.market.digits);
+        $("#quantity-unit").textContent = state.market.symbol;
+        $("#available-balance").textContent = format(state.balance, 2);
+        $("#position-quantity").textContent = state.positions[state.market.id].toFixed(2) + " " + state.market.symbol;
+        $("#submit-order").textContent = (state.side === "buy" ? "Buy " : "Sell ") + state.market.symbol;
+        $$(".currency-label").forEach(el => el.textContent = state.currency);
+        updateOrderPreview();
+      }
+
+      function renderTicker() {
+        const cards = markets.map(m => {
+          const marketPrice = currentPrice(m);
+          const amount = state.currency === "KSH" ? marketPrice * fx : marketPrice;
+          const prefix = state.currency === "KSH" ? "KSH " : "$";
+          return `<div class="ticker-item"><strong>${m.name}</strong><span class="ticker-price mono">${prefix}${amount.toLocaleString("en-US", { minimumFractionDigits: m.digits, maximumFractionDigits: m.digits })}</span><span class="${m.change >= 0 ? "positive" : "negative"}">${m.change >= 0 ? "+" : ""}${m.change.toFixed(2)}%</span></div>`;
+        }).join("");
+        $("#ticker-track").innerHTML = cards + cards;
+      }
+
+      function drawChart() {
+        const canvas = $("#price-chart");
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = Math.max(1, Math.round(rect.width * dpr));
+        canvas.height = Math.max(1, Math.round(rect.height * dpr));
+        const ctx = canvas.getContext("2d");
+        ctx.scale(dpr, dpr);
+        const width = rect.width, height = rect.height;
+        const pad = { left: 8, right: 59, top: 14, bottom: 21 };
+        const chartW = width - pad.left - pad.right, chartH = height - pad.top - pad.bottom;
+        const count = Math.max(24, Math.floor(chartW / 12));
+        let seed = state.market.id.split("").reduce((sum, char) => sum + char.charCodeAt(0), state.timeframe.length * 13);
+        const random = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+        const values = [];
+        let value = currentPrice() * .98;
+        const volatility = currentPrice() * .003;
+        for (let i = 0; i < count; i++) {
+          const open = value;
+          const close = Math.max(.001, open + (random() - .47) * volatility);
+          const high = Math.max(open, close) + random() * volatility * .6;
+          const low = Math.min(open, close) - random() * volatility * .6;
+          values.push({ open, close, high, low });
+          value = close;
+        }
+        const minimum = Math.min(...values.map(c => c.low));
+        const maximum = Math.max(...values.map(c => c.high));
+        const range = maximum - minimum || 1;
+        const y = price => pad.top + chartH - ((price - minimum) / range) * chartH;
+        ctx.clearRect(0, 0, width, height);
+        ctx.font = "10px system-ui";
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 4; i++) {
+          const lineY = pad.top + chartH * i / 4;
+          ctx.strokeStyle = "#25313d";
+          ctx.beginPath(); ctx.moveTo(pad.left, lineY); ctx.lineTo(width - pad.right + 5, lineY); ctx.stroke();
+          const label = minimum + range * (4 - i) / 4;
+          ctx.fillStyle = "#8290a0";
+          ctx.fillText(state.currency === "KSH" ? Math.round(label * fx).toLocaleString() : label.toFixed(state.market.digits), width - pad.right + 10, lineY + 3);
+        }
+        const step = chartW / count;
+        const candleW = Math.max(3, step * .56);
+        values.forEach((candle, index) => {
+          const x = pad.left + step * index + step / 2;
+          const rising = candle.close >= candle.open;
+          ctx.strokeStyle = rising ? "#49d6a0" : "#ff7182";
+          ctx.fillStyle = ctx.strokeStyle;
+          ctx.beginPath(); ctx.moveTo(x, y(candle.high)); ctx.lineTo(x, y(candle.low)); ctx.stroke();
+          const bodyTop = y(Math.max(candle.open, candle.close));
+          const bodyHeight = Math.max(1, Math.abs(y(candle.open) - y(candle.close)));
+          ctx.fillRect(x - candleW / 2, bodyTop, candleW, bodyHeight);
+        });
+        const finalPrice = values[values.length - 1].close;
+        const finalY = y(finalPrice);
+        ctx.setLineDash([4, 4]); ctx.strokeStyle = "#49d6a0";
+        ctx.beginPath(); ctx.moveTo(pad.left, finalY); ctx.lineTo(width - pad.right + 4, finalY); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = "#49d6a0"; ctx.fillRect(width - pad.right + 6, finalY - 9, pad.right - 9, 18);
+        ctx.fillStyle = "#09120f";
+        ctx.fillText(state.currency === "KSH" ? Math.round(finalPrice * fx).toLocaleString() : finalPrice.toFixed(state.market.digits), width - pad.right + 10, finalY + 3);
+      }
+
+      function renderDepth() {
+        const price = currentPrice();
+        const asks = Array.from({ length: 4 }, (_, i) => {
+          const p = price + (4 - i) * price * .00012;
+          const size = (Math.random() * 3 + .2).toFixed(2);
+          return `<div class="depth-row ask"><span class="mono">${format(p, state.market.digits)}</span><span class="mono">${size}</span><span class="mono">${format(p * size, 2)}</span></div>`;
+        }).join("");
+        const bids = Array.from({ length: 4 }, (_, i) => {
+          const p = price - (i + 1) * price * .00012;
+          const size = (Math.random() * 3 + .2).toFixed(2);
+          return `<div class="depth-row bid"><span class="mono">${format(p, state.market.digits)}</span><span class="mono">${size}</span><span class="mono">${format(p * size, 2)}</span></div>`;
+        }).join("");
+        $("#asks").innerHTML = asks;
+        $("#bids").innerHTML = bids;
+        $("#recent-trades").innerHTML = Array.from({ length: 5 }, (_, i) => {
+          const p = price * (1 + (Math.random() - .5) * .0008);
+          return `<div class="trade-row"><span class="mono ${i % 2 ? "positive" : "negative"}">${format(p, state.market.digits)}</span><span class="mono">${(Math.random() * 1.6 + .05).toFixed(2)}</span><span class="muted">${i * 12 + 3}s</span></div>`;
+        }).join("");
+      }
+
+      function updateOrderPreview() {
+        const quantity = Math.max(0, Number($("#order-quantity").value) || 0);
+        const price = orderPrice();
+        $("#order-total").textContent = format(quantity * (Number.isFinite(price) ? price : currentPrice()), 2);
+      }
+
+      function updateFees() {
+        const deposit = Math.max(0, Number($("#deposit-amount").value) || 0);
+        const depositCurrency = $("#deposit-currency").value;
+        const depositFee = deposit < 500 ? .05 : deposit < 5000 ? .035 : .02;
+        $("#deposit-fee-label").textContent = (depositFee * 100).toFixed(1) + "%";
+        $("#deposit-receive").textContent = (depositCurrency === "KSH" ? "KSH " : "$") + (deposit * (1 - depositFee)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        $("#stk-prompt-amount").textContent = "KSH " + deposit.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const withdrawal = Math.max(0, Number($("#withdraw-amount").value) || 0);
+        const withdrawalCurrency = $("#withdraw-currency").value;
+        const withdrawalFee = .02;
+        $("#withdraw-fee-label").textContent = (withdrawalFee * 100).toFixed(1) + "%";
+        $("#withdraw-receive").textContent = (withdrawalCurrency === "KSH" ? "KSH " : "$") + (withdrawal * (1 - withdrawalFee)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+
+      $$(".currency-control button").forEach(button => button.addEventListener("click", () => {
+        state.currency = button.dataset.currency;
+        $$(".currency-control button").forEach(item => item.classList.toggle("active", item === button));
+        setLimitPrice(); renderTicker(); updateMarketLabels(); renderDepth(); drawChart(); updateFees();
+      }));
+      $$(".switcher button").forEach(button => button.addEventListener("click", () => {
+        state.market = markets.find(m => m.id === button.dataset.market);
+        $$(".switcher button").forEach(item => item.classList.toggle("active", item === button));
+        setLimitPrice(); updateMarketLabels(); renderDepth(); drawChart();
+      }));
+      $$(".timeframes button").forEach(button => button.addEventListener("click", () => {
+        state.timeframe = button.dataset.timeframe;
+        $("#chart-timeframe").textContent = state.timeframe;
+        $$(".timeframes button").forEach(item => item.classList.toggle("active", item === button));
+        drawChart();
+      }));
+      $$(".order-tabs button").forEach(button => button.addEventListener("click", () => {
+        state.side = button.dataset.side;
+        $$(".order-tabs button").forEach(item => item.classList.toggle("active", item === button));
+        $("#submit-order").className = "button order-submit" + (state.side === "buy" ? "" : " secondary");
+        updateMarketLabels();
+      }));
+      $("#order-type").addEventListener("change", () => {
+        $("#limit-price-field").hidden = $("#order-type").value !== "Limit";
+        if ($("#order-type").value === "Limit") setLimitPrice();
+        updateOrderPreview();
+      });
+      $("#limit-price").addEventListener("input", updateOrderPreview);
+      $("#order-quantity").addEventListener("input", updateOrderPreview);
+      $("#submit-order").addEventListener("click", () => {
+        const quantity = Number($("#order-quantity").value);
+        if (!Number.isFinite(quantity) || quantity <= 0) {
+          showToast("Enter a quantity greater than zero to preview an order.");
+          return;
+        }
+        const price = orderPrice();
+        if (!Number.isFinite(price) || price <= 0) {
+          showToast("Enter a valid limit price to preview an order.");
+          return;
+        }
+        const total = quantity * price;
+        if (state.side === "buy" && total > state.balance) {
+          showToast("Insufficient demo balance for this simulated order.");
+          return;
+        }
+        if (state.side === "sell" && quantity > state.positions[state.market.id]) {
+          showToast("The demo position is too small to complete this simulated sell.");
+          return;
+        }
+        state.balance += state.side === "buy" ? -total : total;
+        state.positions[state.market.id] += state.side === "buy" ? quantity : -quantity;
+        updateMarketLabels();
+        showToast("Simulated " + state.side + " order placed. No real trade was executed.");
+      });
+      ["deposit-amount", "deposit-currency", "withdraw-amount", "withdraw-currency"].forEach(id => $("#" + id).addEventListener("input", updateFees));
+      ["deposit-currency", "withdraw-currency"].forEach(id => $("#" + id).addEventListener("change", updateFees));
+      $$("[data-toast]").forEach(button => button.addEventListener("click", event => {
+        if (button.tagName === "A") event.preventDefault();
+        showToast(button.dataset.toast);
+      }));
+      $("#menu-toggle").addEventListener("click", () => {
+        const expanded = $("#menu-toggle").getAttribute("aria-expanded") === "true";
+        $("#menu-toggle").setAttribute("aria-expanded", String(!expanded));
+        $("#nav-links").classList.toggle("open", !expanded);
+      });
+      $$("#nav-links a").forEach(link => link.addEventListener("click", () => {
+        $("#nav-links").classList.remove("open");
+        $("#menu-toggle").setAttribute("aria-expanded", "false");
+      }));
+      window.addEventListener("resize", drawChart);
+
+      setLimitPrice(); renderTicker(); updateMarketLabels(); renderDepth(); drawChart(); updateFees();
+      setInterval(() => {
+        markets.forEach(m => {
+          state.priceOffsets[m.id] += (Math.random() - .5) * m.base * .00025;
+        });
+        renderTicker(); updateMarketLabels(); renderDepth(); drawChart();
+      }, 2400);
+    })();
+  </script>
+  <script type="module" src="./payment-client.js"></script>
+</body>
+</html>
